@@ -5,6 +5,7 @@ import { getCustomerSession } from "@/lib/customerSession";
 import { connectDB } from "@/lib/db";
 import { BankAccount } from "@/models/BankAccount";
 import { CustomerProfile } from "@/models/CustomerProfile";
+import { Transaction } from "@/models/Transaction";
 import { User } from "@/models/User";
 import { FileText, ShieldCheck, UserRound, WalletCards } from "lucide-react";
 import { nanoid } from "nanoid";
@@ -37,12 +38,16 @@ async function getDashboardData(userId: string) {
     profile = created.toObject();
   }
 
-  const accounts = await BankAccount.find({ userId }).sort({ createdAt: -1 }).lean();
+  const [accounts, transactions] = await Promise.all([
+    BankAccount.find({ userId }).sort({ createdAt: -1 }).lean(),
+    Transaction.find({ userId }).sort({ createdAt: -1 }).limit(10).lean()
+  ]);
 
   return {
     user,
     profile,
-    accounts
+    accounts,
+    transactions
   };
 }
 
@@ -211,6 +216,61 @@ export default async function DashboardPage() {
                 <p className="text-sm font-semibold text-ink-950">{String(value)}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6 sm:pb-20">
+        <div className="border border-bank-line bg-white p-6 shadow-sm">
+          <div className="border-b border-bank-line pb-5">
+            <h2 className="text-xl font-semibold tracking-[-0.03em] text-ink-950">
+              Recent Activity
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-bank-steel">
+              Placeholder transaction history for dashboard structure. These records do not represent real money movement.
+            </p>
+          </div>
+
+          <div className="mt-5 grid gap-3">
+            {data.transactions.length === 0 ? (
+              <div className="border border-bank-line bg-bank-mist p-5">
+                <p className="text-sm font-semibold text-ink-950">
+                  No transaction activity yet.
+                </p>
+                <p className="mt-2 text-sm leading-7 text-bank-steel">
+                  Transaction placeholders created by admin review will appear here.
+                </p>
+              </div>
+            ) : (
+              data.transactions.map((transaction: any) => (
+                <div
+                  key={String(transaction._id)}
+                  className="grid gap-3 border border-bank-line bg-white p-5 sm:grid-cols-[1fr_auto]"
+                >
+                  <div>
+                    <p className="text-sm font-semibold text-ink-950">
+                      {transaction.description}
+                    </p>
+                    <p className="mt-1 text-xs text-bank-steel">
+                      {transaction.transactionType} • {transaction.reference}
+                    </p>
+                    <p className="mt-2 text-[11px] uppercase tracking-[0.16em] text-bank-steel">
+                      {transaction.status}
+                    </p>
+                  </div>
+
+                  <div className="sm:text-right">
+                    <p className="text-lg font-semibold text-ink-950">
+                      {transaction.direction === "CREDIT" ? "+" : "-"}
+                      {moneyFromCents(transaction.amountCents || 0)}
+                    </p>
+                    <p className="mt-1 text-xs text-bank-steel">
+                      {transaction.direction}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>

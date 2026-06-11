@@ -1,6 +1,7 @@
 import { Footer } from "@/components/Footer";
 import { MainNav } from "@/components/MainNav";
 import { TopUtilityBar } from "@/components/TopUtilityBar";
+import { FormApiBinder } from "@/components/FormApiBinder";
 import { BANK_NAME } from "@/lib/site";
 import {
   ArrowRight,
@@ -95,7 +96,7 @@ export default function EnrollPage() {
               </div>
             </div>
 
-            <form className="mt-6 space-y-5">
+            <form id="enroll-form" className="mt-6 space-y-5">
               <div>
                 <label htmlFor="accountType" className="text-sm font-semibold text-ink-950">
                   Account type
@@ -170,10 +171,12 @@ export default function EnrollPage() {
                 </label>
               </div>
 
-              <button type="button" className="btn-primary h-12 w-full justify-center">
+              <button type="submit" className="btn-primary h-12 w-full justify-center">
                 Continue Enrollment <ArrowRight size={17} />
               </button>
             </form>
+
+            <FormApiBinder formId="enroll-form" endpoint="/api/enrollment" fieldMap={{ identifier: "customerIdentifier" }} />
 
             <div className="mt-6 border border-bank-gold/40 bg-[#fff8e8] p-4">
               <div className="flex gap-3">

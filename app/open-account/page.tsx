@@ -1,6 +1,7 @@
 import { Footer } from "@/components/Footer";
 import { MainNav } from "@/components/MainNav";
 import { TopUtilityBar } from "@/components/TopUtilityBar";
+import { FormApiBinder } from "@/components/FormApiBinder";
 import { BANK_NAME } from "@/lib/site";
 import {
   ArrowRight,
@@ -99,7 +100,7 @@ export default function OpenAccountPage() {
               </div>
             </div>
 
-            <form className="mt-6 space-y-5">
+            <form id="open-account-form" className="mt-6 space-y-5">
               <div>
                 <label htmlFor="relationshipType" className="text-sm font-semibold text-ink-950">
                   Relationship type
@@ -189,10 +190,12 @@ export default function OpenAccountPage() {
                 </label>
               </div>
 
-              <button type="button" className="btn-primary h-12 w-full justify-center">
+              <button type="submit" className="btn-primary h-12 w-full justify-center">
                 Continue Application <ArrowRight size={17} />
               </button>
             </form>
+
+            <FormApiBinder formId="open-account-form" endpoint="/api/applications/account-opening" />
 
             <div className="mt-6 border border-bank-gold/40 bg-[#fff8e8] p-4">
               <div className="flex gap-3">

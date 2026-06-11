@@ -1,3 +1,4 @@
+import { FormApiBinder } from "@/components/FormApiBinder";
 import { Footer } from "@/components/Footer";
 import { MainNav } from "@/components/MainNav";
 import { TopUtilityBar } from "@/components/TopUtilityBar";
@@ -53,6 +54,16 @@ export function SupportFormPage({
   formType,
   notice
 }: SupportFormPageProps) {
+  const endpoint =
+    formType === "fraud"
+      ? "/api/support/fraud-report"
+      : formType === "appointment"
+        ? "/api/support/appointments"
+        : "/api/support/tickets";
+
+  const formId = `support-${formType}-form`;
+  const fieldMap: Record<string, string> = formType === "appointment" ? { location: "preferredLocation" } : {};
+
   return (
     <main className="min-h-screen bg-white text-ink-950">
       <TopUtilityBar />
@@ -110,7 +121,7 @@ export function SupportFormPage({
               </div>
             </div>
 
-            <form className="mt-6 space-y-5">
+            <form id={formId} className="mt-6 space-y-5">
               {formType === "contact" && (
                 <div>
                   <label htmlFor="topic" className="text-sm font-semibold text-ink-950">
@@ -292,7 +303,7 @@ export function SupportFormPage({
                 </label>
               </div>
 
-              <button type="button" className="btn-primary h-12 w-full justify-center">
+              <button type="submit" className="btn-primary h-12 w-full justify-center">
                 {formType === "appointment"
                   ? "Request Appointment"
                   : formType === "fraud"
@@ -301,6 +312,8 @@ export function SupportFormPage({
                 <ArrowRight size={17} />
               </button>
             </form>
+
+            <FormApiBinder formId={formId} endpoint={endpoint} fieldMap={fieldMap} />
 
             <div className="mt-6 border border-bank-gold/40 bg-[#fff8e8] p-4">
               <div className="flex gap-3">

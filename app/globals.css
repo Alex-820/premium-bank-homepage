@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: #ffffff;
+  font-family: Inter, "IBM Plex Sans", "Source Sans 3", "Neue Haas Grotesk Text", Arial, sans-serif;
+  text-rendering: geometricPrecision;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: #e8ddc9;
+  color: #071326;
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center gap-2 bg-ink-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-bank-blue focus:outline-none focus:ring-4 focus:ring-bank-blue/20;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 border border-bank-line bg-white px-5 py-3 text-sm font-semibold text-ink-950 transition hover:border-bank-blue hover:bg-bank-mist focus:outline-none focus:ring-4 focus:ring-bank-blue/15;
+  }
+
+  .btn-gold {
+    @apply inline-flex items-center gap-2 bg-bank-gold px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#92743B] focus:outline-none focus:ring-4 focus:ring-bank-gold/25;
+  }
+
+  .btn-ghost-dark {
+    @apply inline-flex items-center gap-2 border border-white/20 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:border-white/35 hover:bg-white/10 focus:outline-none focus:ring-4 focus:ring-white/15;
+  }
+
+  .section-eyebrow {
+    @apply text-xs font-bold uppercase tracking-[0.24em];
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.001ms !important;
+  }
+}

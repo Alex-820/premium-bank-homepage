@@ -1,66 +1,15 @@
+import { AdminReviewActions } from "@/components/admin/AdminReviewActions";
 import { Footer } from "@/components/Footer";
 import { MainNav } from "@/components/MainNav";
 import { TopUtilityBar } from "@/components/TopUtilityBar";
+import { adminReviewConfig, isAdminReviewSection } from "@/lib/adminReview";
 import { connectDB } from "@/lib/db";
-import { AccountOpeningApplication } from "@/models/AccountOpeningApplication";
-import { AppointmentRequest } from "@/models/AppointmentRequest";
-import { AuditLog } from "@/models/AuditLog";
-import { FraudReport } from "@/models/FraudReport";
-import { OnlineBankingEnrollment } from "@/models/OnlineBankingEnrollment";
-import { SecurityEvent } from "@/models/SecurityEvent";
-import { SupportTicket } from "@/models/SupportTicket";
-import { ArrowLeft, FileText, ShieldCheck } from "lucide-react";
+import { AdminNote } from "@/models/AdminNote";
+import { ArrowLeft, FileText } from "lucide-react";
 import { isValidObjectId } from "mongoose";
 import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
-
-const sectionConfig = {
-  applications: {
-    label: "Account Opening Application",
-    model: AccountOpeningApplication,
-    backHref: "/admin",
-    statusField: "status"
-  },
-  enrollments: {
-    label: "Online Banking Enrollment",
-    model: OnlineBankingEnrollment,
-    backHref: "/admin",
-    statusField: "status"
-  },
-  support: {
-    label: "Support Ticket",
-    model: SupportTicket,
-    backHref: "/admin",
-    statusField: "status"
-  },
-  fraud: {
-    label: "Fraud Report",
-    model: FraudReport,
-    backHref: "/admin",
-    statusField: "status"
-  },
-  appointments: {
-    label: "Appointment Request",
-    model: AppointmentRequest,
-    backHref: "/admin",
-    statusField: "status"
-  },
-  "audit-logs": {
-    label: "Audit Log",
-    model: AuditLog,
-    backHref: "/admin",
-    statusField: "riskLevel"
-  },
-  "security-events": {
-    label: "Security Event",
-    model: SecurityEvent,
-    backHref: "/admin",
-    statusField: "severity"
-  }
-} as const;
-
-type SectionKey = keyof typeof sectionConfig;
 
 function formatValue(value: unknown): string {
   if (value === null || value === undefined || value === "") return "—";
@@ -84,7 +33,6 @@ function formatLabel(key: string) {
 
 function cleanRecord(record: Record<string, unknown>) {
   const hiddenFields = ["__v"];
-
   return Object.entries(record).filter(([key]) => !hiddenFields.includes(key));
 }
 
@@ -95,26 +43,32 @@ export default async function AdminDetailPage({
 }) {
   const { section, id } = await params;
 
-  if (!(section in sectionConfig)) {
+  if (!isAdminReviewSection(section) || !isValidObjectId(id)) {
     notFound();
   }
 
-  if (!isValidObjectId(id)) {
-    notFound();
-  }
-
-  const config = sectionConfig[section as SectionKey];
+  const config = adminReviewConfig[section];
 
   await connectDB();
 
-  const record = await config.model.findById(id).lean();
+  const [record, notes] = await Promise.all([
+    config.model.findById(id).lean(),
+    AdminNote.find({ entityType: section, entityId: id }).sort({ createdAt: -1 }).lean()
+  ]);
 
   if (!record) {
     notFound();
   }
 
   const plainRecord = JSON.parse(JSON.stringify(record)) as Record<string, unknown>;
-  const statusValue = plainRecord[config.statusField] || "REVIEW";
+  const statusValue = String(plainRecord[config.statusField] || "");
+
+  const initialNotes = notes.map((note: any) => ({
+    id: String(note._id),
+    note: String(note.note),
+    visibility: String(note.visibility),
+    createdAt: String(note.createdAt)
+  }));
 
   return (
     <main className="min-h-screen bg-white text-ink-950">
@@ -141,8 +95,8 @@ export default async function AdminDetailPage({
               </h1>
 
               <p className="mt-4 max-w-3xl text-sm leading-7 text-white/65">
-                Review submitted record details from MongoDB. This page is currently read-only.
-                Status updates, internal notes, reviewer assignment, and role protection come next.
+                Review submitted record details, update status, and add internal notes.
+                Production admin access must be protected with authentication and RBAC.
               </p>
             </div>
 
@@ -188,25 +142,14 @@ export default async function AdminDetailPage({
             </div>
           </div>
 
-          <aside className="space-y-6">
-            <div className="border border-bank-line bg-white p-6 shadow-sm">
-              <ShieldCheck className="text-bank-blue" size={22} />
-              <h2 className="mt-5 text-lg font-semibold tracking-[-0.02em] text-ink-950">
-                Review Controls Coming Next
-              </h2>
-              <p className="mt-3 text-sm leading-7 text-bank-steel">
-                The next phase will add status updates, internal notes, reviewer assignment,
-                admin authentication, and audit logging for every admin action.
-              </p>
-            </div>
-
-            <div className="border border-bank-gold/40 bg-[#fff8e8] p-5">
-              <p className="text-sm font-semibold text-ink-950">Security Reminder</p>
-              <p className="mt-2 text-xs leading-6 text-ink-900">
-                Admin routes must be protected before production. This development dashboard
-                should not be exposed publicly without authentication and role-based access control.
-              </p>
-            </div>
+          <aside>
+            <AdminReviewActions
+              section={section}
+              id={id}
+              currentStatus={statusValue}
+              allowedStatuses={config.allowedStatuses}
+              initialNotes={initialNotes}
+            />
           </aside>
         </div>
       </section>

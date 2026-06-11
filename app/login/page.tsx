@@ -96,6 +96,9 @@ export default function LoginPage() {
               <a href="/enroll" className="font-semibold text-bank-blue hover:underline">
                 Enroll in online banking
               </a>
+              <a href="/register" className="font-semibold text-bank-blue hover:underline">
+                Create a customer profile
+              </a>
             </div>
 
             <div className="mt-6 border border-bank-gold/40 bg-[#fff8e8] p-4">

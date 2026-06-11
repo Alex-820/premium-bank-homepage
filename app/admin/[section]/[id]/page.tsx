@@ -3,6 +3,7 @@ import { Footer } from "@/components/Footer";
 import { MainNav } from "@/components/MainNav";
 import { TopUtilityBar } from "@/components/TopUtilityBar";
 import { adminReviewConfig, isAdminReviewSection } from "@/lib/adminReview";
+import { requireAdminSession } from "@/lib/adminSession";
 import { connectDB } from "@/lib/db";
 import { AdminNote } from "@/models/AdminNote";
 import { ArrowLeft, FileText } from "lucide-react";
@@ -41,6 +42,8 @@ export default async function AdminDetailPage({
 }: {
   params: Promise<{ section: string; id: string }>;
 }) {
+  await requireAdminSession();
+
   const { section, id } = await params;
 
   if (!isAdminReviewSection(section) || !isValidObjectId(id)) {

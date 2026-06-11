@@ -1,6 +1,7 @@
 import { Footer } from "@/components/Footer";
 import { MainNav } from "@/components/MainNav";
 import { TopUtilityBar } from "@/components/TopUtilityBar";
+import { requireAdminSession } from "@/lib/adminSession";
 import { connectDB } from "@/lib/db";
 import { AccountOpeningApplication } from "@/models/AccountOpeningApplication";
 import { AppointmentRequest } from "@/models/AppointmentRequest";
@@ -205,6 +206,8 @@ function ReviewSection({
 }
 
 export default async function AdminDashboardPage() {
+  await requireAdminSession();
+
   const data = await getAdminData();
 
   return (
@@ -226,6 +229,13 @@ export default async function AdminDashboardPage() {
             Review account opening requests, enrollments, support tickets, fraud reports,
             appointments, audit logs, and security events from MongoDB.
           </p>
+
+
+          <form action="/api/admin/auth/logout" method="post" className="mt-6">
+            <button type="submit" className="btn-secondary h-11 px-5">
+              Sign Out Admin
+            </button>
+          </form>
 
           <div className="mt-8 border border-bank-gold/40 bg-white/[0.04] p-5">
             <div className="flex gap-3">

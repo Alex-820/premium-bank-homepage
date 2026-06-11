@@ -8,10 +8,15 @@
     "start": "next start"
   },
   "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "jose": "^6.2.3",
+    "lucide-react": "latest",
+    "mongoose": "^9.7.0",
+    "nanoid": "^5.1.11",
     "next": "latest",
     "react": "latest",
     "react-dom": "latest",
-    "lucide-react": "latest"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "latest",

@@ -1,4 +1,5 @@
 import { createAuditLog } from "@/lib/audit";
+import { getAdminSession } from "@/lib/adminSession";
 import { isAdminReviewSection } from "@/lib/adminReview";
 import { connectDB } from "@/lib/db";
 import { getRequestMeta } from "@/lib/requestMeta";
@@ -16,6 +17,15 @@ export async function GET(
   _request: NextRequest,
   { params }: { params: Promise<{ section: string; id: string }> }
 ) {
+  const adminSession = await getAdminSession();
+
+  if (!adminSession) {
+    return NextResponse.json(
+      { ok: false, message: "Admin authentication required." },
+      { status: 401 }
+    );
+  }
+
   const { section, id } = await params;
 
   if (!isAdminReviewSection(section) || !isValidObjectId(id)) {
@@ -44,6 +54,15 @@ export async function POST(
   { params }: { params: Promise<{ section: string; id: string }> }
 ) {
   try {
+    const adminSession = await getAdminSession();
+
+    if (!adminSession) {
+      return NextResponse.json(
+        { ok: false, message: "Admin authentication required." },
+        { status: 401 }
+      );
+    }
+
     const { section, id } = await params;
 
     if (!isAdminReviewSection(section) || !isValidObjectId(id)) {

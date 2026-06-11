@@ -1,3 +1,4 @@
+import { AdminCustomerProfileActions } from "@/components/admin/AdminCustomerProfileActions";
 import { AdminReviewActions } from "@/components/admin/AdminReviewActions";
 import { Footer } from "@/components/Footer";
 import { MainNav } from "@/components/MainNav";
@@ -6,6 +7,8 @@ import { adminReviewConfig, isAdminReviewSection } from "@/lib/adminReview";
 import { requireAdminSession } from "@/lib/adminSession";
 import { connectDB } from "@/lib/db";
 import { AdminNote } from "@/models/AdminNote";
+import { BankAccount } from "@/models/BankAccount";
+import { CustomerProfile } from "@/models/CustomerProfile";
 import { ArrowLeft, FileText } from "lucide-react";
 import { isValidObjectId } from "mongoose";
 import { notFound } from "next/navigation";
@@ -33,7 +36,7 @@ function formatLabel(key: string) {
 }
 
 function cleanRecord(record: Record<string, unknown>) {
-  const hiddenFields = ["__v"];
+  const hiddenFields = ["__v", "passwordHash"];
   return Object.entries(record).filter(([key]) => !hiddenFields.includes(key));
 }
 
@@ -54,9 +57,11 @@ export default async function AdminDetailPage({
 
   await connectDB();
 
-  const [record, notes] = await Promise.all([
+  const [record, notes, customerProfile, customerAccounts] = await Promise.all([
     config.model.findById(id).lean(),
-    AdminNote.find({ entityType: section, entityId: id }).sort({ createdAt: -1 }).lean()
+    AdminNote.find({ entityType: section, entityId: id }).sort({ createdAt: -1 }).lean(),
+    section === "customers" ? CustomerProfile.findOne({ userId: id }).lean() : null,
+    section === "customers" ? BankAccount.find({ userId: id }).sort({ createdAt: -1 }).limit(10).lean() : []
   ]);
 
   if (!record) {
@@ -73,6 +78,15 @@ export default async function AdminDetailPage({
     createdAt: String(note.createdAt)
   }));
 
+  const customerProfileState = {
+    customerNumber: customerProfile?.customerNumber || "Will be created on save",
+    relationshipType: customerProfile?.relationshipType || "PERSONAL",
+    onboardingStatus: customerProfile?.onboardingStatus || "PROFILE_CREATED",
+    kycStatus: customerProfile?.kycStatus || "NOT_STARTED",
+    riskTier: customerProfile?.riskTier || "UNASSIGNED",
+    addressStatus: customerProfile?.addressStatus || "NOT_PROVIDED"
+  };
+
   return (
     <main className="min-h-screen bg-white text-ink-950">
       <TopUtilityBar />
@@ -81,10 +95,10 @@ export default async function AdminDetailPage({
       <section className="border-b border-bank-line bg-ink-950 text-white">
         <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:py-16">
           <a
-            href="/admin"
+            href={section === "customers" ? "/admin/customers" : "/admin"}
             className="inline-flex items-center gap-2 text-sm font-semibold text-bank-goldSoft"
           >
-            <ArrowLeft size={16} /> Back to admin dashboard
+            <ArrowLeft size={16} /> Back to {section === "customers" ? "customers" : "admin dashboard"}
           </a>
 
           <p className="mt-8 text-xs font-semibold uppercase tracking-[0.22em] text-bank-goldSoft">
@@ -98,8 +112,8 @@ export default async function AdminDetailPage({
               </h1>
 
               <p className="mt-4 max-w-3xl text-sm leading-7 text-white/65">
-                Review submitted record details, update status, and add internal notes.
-                Production admin access must be protected with authentication and RBAC.
+                Review record details, update status, update customer profile where applicable,
+                and add internal notes. Admin actions are audit logged.
               </p>
             </div>
 
@@ -145,7 +159,15 @@ export default async function AdminDetailPage({
             </div>
           </div>
 
-          <aside>
+          <aside className="space-y-6">
+            {section === "customers" && (
+              <AdminCustomerProfileActions
+                userId={id}
+                initialProfile={customerProfileState}
+                accountCount={customerAccounts.length}
+              />
+            )}
+
             <AdminReviewActions
               section={section}
               id={id}

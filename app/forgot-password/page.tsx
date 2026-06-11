@@ -114,14 +114,14 @@ export default function ForgotPasswordPage() {
 
               <div>
                 <label htmlFor="identifier" className="text-sm font-semibold text-ink-950">
-                  Username, email, or customer reference
+                  Email address or customer reference
                 </label>
                 <input
                   id="identifier"
                   name="identifier"
                   type="text"
                   className="mt-2 h-12 w-full border border-bank-line px-3 text-sm outline-none transition focus:border-bank-blue"
-                  placeholder="Enter username, email, or reference"
+                  placeholder="Enter email address or customer reference"
                 />
               </div>
 

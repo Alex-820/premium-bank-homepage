@@ -85,11 +85,17 @@ export default async function DashboardPage() {
             and support workflows.
           </p>
 
-          <form action="/api/auth/logout" method="post" className="mt-8">
-            <button type="submit" className="btn-secondary h-11 px-5">
-              Sign Out
-            </button>
-          </form>
+          <div className="mt-8 flex flex-wrap gap-3">
+            <a href="/dashboard/support" className="btn-primary h-11 px-5">
+              Support Center
+            </a>
+
+            <form action="/api/auth/logout" method="post">
+              <button type="submit" className="btn-secondary h-11 px-5">
+                Sign Out
+              </button>
+            </form>
+          </div>
         </div>
       </section>
 

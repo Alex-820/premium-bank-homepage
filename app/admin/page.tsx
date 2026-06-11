@@ -21,6 +21,7 @@ export const metadata: Metadata = {
 
 type ReviewItem = {
   id: string;
+  href: string;
   title: string;
   subtitle: string;
   status: string;
@@ -72,6 +73,7 @@ async function getAdminData() {
     counts,
     accountApplications: accountApplications.map((item: any): ReviewItem => ({
       id: toId(item._id),
+      href: `/admin/applications/${toId(item._id)}`,
       title: `${item.firstName} ${item.lastName}`,
       subtitle: item.relationshipType,
       status: item.status,
@@ -79,6 +81,7 @@ async function getAdminData() {
     })),
     enrollments: enrollments.map((item: any): ReviewItem => ({
       id: toId(item._id),
+      href: `/admin/enrollments/${toId(item._id)}`,
       title: item.email,
       subtitle: item.accountType,
       status: item.status,
@@ -86,6 +89,7 @@ async function getAdminData() {
     })),
     supportTickets: supportTickets.map((item: any): ReviewItem => ({
       id: toId(item._id),
+      href: `/admin/support/${toId(item._id)}`,
       title: `${item.firstName} ${item.lastName}`,
       subtitle: item.topic,
       status: item.status,
@@ -93,6 +97,7 @@ async function getAdminData() {
     })),
     fraudReports: fraudReports.map((item: any): ReviewItem => ({
       id: toId(item._id),
+      href: `/admin/fraud/${toId(item._id)}`,
       title: `${item.firstName} ${item.lastName}`,
       subtitle: item.fraudType,
       status: `${item.status} • ${item.severity}`,
@@ -100,6 +105,7 @@ async function getAdminData() {
     })),
     appointments: appointments.map((item: any): ReviewItem => ({
       id: toId(item._id),
+      href: `/admin/appointments/${toId(item._id)}`,
       title: `${item.firstName} ${item.lastName}`,
       subtitle: item.appointmentType,
       status: item.status,
@@ -107,6 +113,7 @@ async function getAdminData() {
     })),
     auditLogs: auditLogs.map((item: any): ReviewItem => ({
       id: toId(item._id),
+      href: `/admin/audit-logs/${toId(item._id)}`,
       title: item.actionType,
       subtitle: item.entityType,
       status: item.riskLevel,
@@ -114,6 +121,7 @@ async function getAdminData() {
     })),
     securityEvents: securityEvents.map((item: any): ReviewItem => ({
       id: toId(item._id),
+      href: `/admin/security-events/${toId(item._id)}`,
       title: item.eventType,
       subtitle: item.status,
       status: item.severity,
@@ -171,9 +179,10 @@ function ReviewSection({
           </div>
         ) : (
           items.map((item) => (
-            <div
+            <a
               key={item.id}
-              className="grid gap-3 border border-bank-line bg-white p-4 sm:grid-cols-[1fr_auto]"
+              href={item.href}
+              className="grid gap-3 border border-bank-line bg-white p-4 transition hover:border-bank-blue hover:bg-bank-mist sm:grid-cols-[1fr_auto]"
             >
               <div>
                 <p className="text-sm font-semibold text-ink-950">{item.title}</p>
@@ -187,7 +196,7 @@ function ReviewSection({
                 </span>
                 <p className="mt-2 text-xs text-bank-steel">{item.createdAt}</p>
               </div>
-            </div>
+            </a>
           ))
         )}
       </div>

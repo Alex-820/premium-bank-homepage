@@ -59,6 +59,7 @@ export const appointmentStatuses = [
 ] as const;
 
 export const auditEventTypes = [
+  "CUSTOMER_REGISTERED",
   "LOGIN_SUCCESS",
   "LOGIN_FAILED",
   "LOGOUT",

@@ -165,7 +165,11 @@ export default async function DashboardPage() {
               </div>
             ) : (
               data.accounts.map((account) => (
-                <div key={String(account._id)} className="border border-bank-line bg-white p-5">
+                <a
+                  key={String(account._id)}
+                  href={`/dashboard/accounts/${String(account._id)}`}
+                  className="block border border-bank-line bg-white p-5 transition hover:border-bank-blue hover:bg-bank-mist"
+                >
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-sm font-semibold text-ink-950">
@@ -183,7 +187,7 @@ export default async function DashboardPage() {
                       </p>
                     </div>
                   </div>
-                </div>
+                </a>
               ))
             )}
           </div>

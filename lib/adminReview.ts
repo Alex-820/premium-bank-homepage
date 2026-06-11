@@ -5,16 +5,24 @@ import { FraudReport } from "@/models/FraudReport";
 import { OnlineBankingEnrollment } from "@/models/OnlineBankingEnrollment";
 import { SecurityEvent } from "@/models/SecurityEvent";
 import { SupportTicket } from "@/models/SupportTicket";
+import { User } from "@/models/User";
 import {
   applicationStatuses,
   appointmentStatuses,
   fraudStatuses,
-  supportStatuses
+  supportStatuses,
+  userStatuses
 } from "@/types/backend";
 
 export const securityEventStatuses = ["OPEN", "REVIEWED", "ESCALATED", "CLOSED"] as const;
 
 export const adminReviewConfig = {
+  customers: {
+    label: "Customer",
+    model: User,
+    statusField: "status",
+    allowedStatuses: userStatuses
+  },
   applications: {
     label: "Account Opening Application",
     model: AccountOpeningApplication,

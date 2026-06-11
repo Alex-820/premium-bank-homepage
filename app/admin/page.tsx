@@ -231,11 +231,17 @@ export default async function AdminDashboardPage() {
           </p>
 
 
-          <form action="/api/admin/auth/logout" method="post" className="mt-6">
-            <button type="submit" className="btn-secondary h-11 px-5">
-              Sign Out Admin
-            </button>
-          </form>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <a href="/admin/customers" className="btn-primary h-11 px-5">
+              Customer Management
+            </a>
+
+            <form action="/api/admin/auth/logout" method="post">
+              <button type="submit" className="btn-secondary h-11 px-5">
+                Sign Out Admin
+              </button>
+            </form>
+          </div>
 
           <div className="mt-8 border border-bank-gold/40 bg-white/[0.04] p-5">
             <div className="flex gap-3">

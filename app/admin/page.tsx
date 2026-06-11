@@ -13,6 +13,7 @@ import { OnlineBankingEnrollment } from "@/models/OnlineBankingEnrollment";
 import { SecurityEvent } from "@/models/SecurityEvent";
 import { SupportTicket } from "@/models/SupportTicket";
 import { TransferRequest } from "@/models/TransferRequest";
+import { User } from "@/models/User";
 import {
   AlertTriangle,
   ClipboardList,
@@ -96,7 +97,8 @@ async function getAdminData() {
     billPayRequests: await BillPayRequest.countDocuments(),
     cardControlRequests: await CardControlRequest.countDocuments(),
     auditLogs: await AuditLog.countDocuments(),
-    securityEvents: await SecurityEvent.countDocuments()
+    securityEvents: await SecurityEvent.countDocuments(),
+    customers: await User.countDocuments()
   };
 
   return {
@@ -319,7 +321,7 @@ export default async function AdminDashboardPage() {
           <StatCard label="Card Controls" value={data.counts.cardControlRequests} icon={CreditCard} />
           <StatCard label="Audit Logs" value={data.counts.auditLogs} icon={FileText} />
           <StatCard label="Security Events" value={data.counts.securityEvents} icon={ShieldAlert} />
-          <StatCard label="Customers" value={0} icon={Users} />
+          <StatCard label="Customers" value={data.counts.customers} icon={Users} />
         </div>
       </section>
 

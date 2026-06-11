@@ -1,15 +1,14 @@
+import { CustomerLoginForm } from "@/components/auth/CustomerLoginForm";
 import { Footer } from "@/components/Footer";
 import { MainNav } from "@/components/MainNav";
 import { TopUtilityBar } from "@/components/TopUtilityBar";
 import { BANK_NAME } from "@/lib/site";
 import {
   AlertTriangle,
-  ArrowRight,
   Building2,
   LockKeyhole,
   ShieldCheck,
   Smartphone,
-  UserRound
 } from "lucide-react";
 import type { Metadata } from "next";
 
@@ -88,64 +87,7 @@ export default function LoginPage() {
               </div>
             </div>
 
-            <form className="mt-6 space-y-5">
-              <div>
-                <label
-                  htmlFor="username"
-                  className="text-sm font-semibold text-ink-950"
-                >
-                  Username
-                </label>
-                <div className="mt-2 flex items-center border border-bank-line bg-white px-3 transition focus-within:border-bank-blue">
-                  <UserRound size={18} className="text-bank-steel" />
-                  <input
-                    id="username"
-                    name="username"
-                    type="text"
-                    autoComplete="username"
-                    className="h-12 w-full bg-transparent px-3 text-sm text-ink-950 outline-none placeholder:text-bank-steel"
-                    placeholder="Enter username"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label
-                  htmlFor="password"
-                  className="text-sm font-semibold text-ink-950"
-                >
-                  Password
-                </label>
-                <div className="mt-2 flex items-center border border-bank-line bg-white px-3 transition focus-within:border-bank-blue">
-                  <LockKeyhole size={18} className="text-bank-steel" />
-                  <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autoComplete="current-password"
-                    className="h-12 w-full bg-transparent px-3 text-sm text-ink-950 outline-none placeholder:text-bank-steel"
-                    placeholder="Enter password"
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <input
-                  id="remember-device"
-                  name="rememberDevice"
-                  type="checkbox"
-                  className="mt-1 h-4 w-4 border-bank-line"
-                />
-                <label htmlFor="remember-device" className="text-sm leading-6 text-bank-steel">
-                  Remember this device placeholder. In production, this requires secure device
-                  fingerprinting, consent, and risk controls.
-                </label>
-              </div>
-
-              <button type="button" className="btn-primary h-12 w-full justify-center">
-                Sign In Securely <ArrowRight size={17} />
-              </button>
-            </form>
+            <CustomerLoginForm />
 
             <div className="mt-5 grid gap-3 border-t border-bank-line pt-5 text-sm">
               <a href="/forgot-password" className="font-semibold text-bank-blue hover:underline">

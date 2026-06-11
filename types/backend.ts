@@ -61,6 +61,7 @@ export const appointmentStatuses = [
 export const auditEventTypes = [
   "CUSTOMER_REGISTERED",
   "CUSTOMER_PROFILE_UPDATED",
+  "ACCOUNT_PLACEHOLDER_CREATED",
   "KYC_STATUS_CHANGED",
   "LOGIN_SUCCESS",
   "LOGIN_FAILED",

@@ -1,3 +1,4 @@
+import { AdminCustomerAccountActions } from "@/components/admin/AdminCustomerAccountActions";
 import { AdminCustomerProfileActions } from "@/components/admin/AdminCustomerProfileActions";
 import { AdminReviewActions } from "@/components/admin/AdminReviewActions";
 import { Footer } from "@/components/Footer";
@@ -87,6 +88,18 @@ export default async function AdminDetailPage({
     addressStatus: customerProfile?.addressStatus || "NOT_PROVIDED"
   };
 
+  const customerAccountItems = Array.isArray(customerAccounts)
+    ? customerAccounts.map((account: any) => ({
+        id: String(account._id),
+        accountType: String(account.accountType),
+        accountNickname: String(account.accountNickname || ""),
+        maskedAccountNumber: String(account.maskedAccountNumber),
+        status: String(account.status),
+        availableBalanceCents: Number(account.availableBalanceCents || 0),
+        ledgerBalanceCents: Number(account.ledgerBalanceCents || 0)
+      }))
+    : [];
+
   return (
     <main className="min-h-screen bg-white text-ink-950">
       <TopUtilityBar />
@@ -161,11 +174,18 @@ export default async function AdminDetailPage({
 
           <aside className="space-y-6">
             {section === "customers" && (
-              <AdminCustomerProfileActions
-                userId={id}
-                initialProfile={customerProfileState}
-                accountCount={customerAccounts.length}
-              />
+              <>
+                <AdminCustomerProfileActions
+                  userId={id}
+                  initialProfile={customerProfileState}
+                  accountCount={customerAccounts.length}
+                />
+
+                <AdminCustomerAccountActions
+                  userId={id}
+                  initialAccounts={customerAccountItems}
+                />
+              </>
             )}
 
             <AdminReviewActions

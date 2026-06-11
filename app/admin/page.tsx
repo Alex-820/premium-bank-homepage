@@ -7,6 +7,7 @@ import { AccountOpeningApplication } from "@/models/AccountOpeningApplication";
 import { AppointmentRequest } from "@/models/AppointmentRequest";
 import { AuditLog } from "@/models/AuditLog";
 import { BillPayRequest } from "@/models/BillPayRequest";
+import { CardControlRequest } from "@/models/CardControlRequest";
 import { FraudReport } from "@/models/FraudReport";
 import { OnlineBankingEnrollment } from "@/models/OnlineBankingEnrollment";
 import { SecurityEvent } from "@/models/SecurityEvent";
@@ -15,6 +16,7 @@ import { TransferRequest } from "@/models/TransferRequest";
 import {
   AlertTriangle,
   ClipboardList,
+  CreditCard,
   FileText,
   ReceiptText,
   Send,
@@ -68,6 +70,7 @@ async function getAdminData() {
     appointments,
     transferRequests,
     billPayRequests,
+    cardControlRequests,
     auditLogs,
     securityEvents
   ] = await Promise.all([
@@ -78,6 +81,7 @@ async function getAdminData() {
     AppointmentRequest.find().sort({ createdAt: -1 }).limit(6).lean(),
     TransferRequest.find().sort({ createdAt: -1 }).limit(6).lean(),
     BillPayRequest.find().sort({ createdAt: -1 }).limit(6).lean(),
+    CardControlRequest.find().sort({ createdAt: -1 }).limit(6).lean(),
     AuditLog.find().sort({ createdAt: -1 }).limit(8).lean(),
     SecurityEvent.find().sort({ createdAt: -1 }).limit(8).lean()
   ]);
@@ -90,6 +94,7 @@ async function getAdminData() {
     appointments: await AppointmentRequest.countDocuments(),
     transferRequests: await TransferRequest.countDocuments(),
     billPayRequests: await BillPayRequest.countDocuments(),
+    cardControlRequests: await CardControlRequest.countDocuments(),
     auditLogs: await AuditLog.countDocuments(),
     securityEvents: await SecurityEvent.countDocuments()
   };
@@ -149,6 +154,14 @@ async function getAdminData() {
       href: `/admin/bill-pay-requests/${toId(item._id)}`,
       title: item.payeeName,
       subtitle: `${item.payeeCategory} • ${moneyFromCents(item.amountCents || 0)}`,
+      status: item.status,
+      createdAt: formatDate(item.createdAt)
+    })),
+    cardControlRequests: cardControlRequests.map((item: any): ReviewItem => ({
+      id: toId(item._id),
+      href: `/admin/card-control-requests/${toId(item._id)}`,
+      title: item.requestType,
+      subtitle: `${item.cardLabel}${item.maskedCardNumber ? ` • ${item.maskedCardNumber}` : ""}`,
       status: item.status,
       createdAt: formatDate(item.createdAt)
     })),
@@ -303,6 +316,7 @@ export default async function AdminDashboardPage() {
           <StatCard label="Appointments" value={data.counts.appointments} icon={ClipboardList} />
           <StatCard label="Transfers" value={data.counts.transferRequests} icon={Send} />
           <StatCard label="Bill Pay" value={data.counts.billPayRequests} icon={ReceiptText} />
+          <StatCard label="Card Controls" value={data.counts.cardControlRequests} icon={CreditCard} />
           <StatCard label="Audit Logs" value={data.counts.auditLogs} icon={FileText} />
           <StatCard label="Security Events" value={data.counts.securityEvents} icon={ShieldAlert} />
           <StatCard label="Customers" value={0} icon={Users} />
@@ -320,6 +334,12 @@ export default async function AdminDashboardPage() {
           title="Bill-Pay Requests"
           description="Customer-submitted bill-pay request placeholders awaiting review."
           items={data.billPayRequests}
+        />
+
+        <ReviewSection
+          title="Card Control Requests"
+          description="Customer-submitted card control request placeholders awaiting review."
+          items={data.cardControlRequests}
         />
 
         <ReviewSection

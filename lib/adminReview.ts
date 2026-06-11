@@ -2,6 +2,7 @@ import { AccountOpeningApplication } from "@/models/AccountOpeningApplication";
 import { AppointmentRequest } from "@/models/AppointmentRequest";
 import { AuditLog } from "@/models/AuditLog";
 import { BillPayRequest } from "@/models/BillPayRequest";
+import { CardControlRequest } from "@/models/CardControlRequest";
 import { FraudReport } from "@/models/FraudReport";
 import { OnlineBankingEnrollment } from "@/models/OnlineBankingEnrollment";
 import { SecurityEvent } from "@/models/SecurityEvent";
@@ -73,6 +74,12 @@ export const adminReviewConfig = {
   "bill-pay-requests": {
     label: "Bill-Pay Request",
     model: BillPayRequest,
+    statusField: "status",
+    allowedStatuses: paymentRequestStatuses
+  },
+  "card-control-requests": {
+    label: "Card Control Request",
+    model: CardControlRequest,
     statusField: "status",
     allowedStatuses: paymentRequestStatuses
   },

@@ -90,6 +90,14 @@ export default async function DashboardPage() {
               Support Center
             </a>
 
+            <a href="/dashboard/transfers" className="btn-secondary h-11 px-5">
+              Transfers
+            </a>
+
+            <a href="/dashboard/bill-pay" className="btn-secondary h-11 px-5">
+              Bill Pay
+            </a>
+
             <form action="/api/auth/logout" method="post">
               <button type="submit" className="btn-secondary h-11 px-5">
                 Sign Out

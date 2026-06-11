@@ -6,12 +6,24 @@ import { connectDB } from "@/lib/db";
 import { AccountOpeningApplication } from "@/models/AccountOpeningApplication";
 import { AppointmentRequest } from "@/models/AppointmentRequest";
 import { AuditLog } from "@/models/AuditLog";
+import { BillPayRequest } from "@/models/BillPayRequest";
 import { FraudReport } from "@/models/FraudReport";
 import { OnlineBankingEnrollment } from "@/models/OnlineBankingEnrollment";
 import { SecurityEvent } from "@/models/SecurityEvent";
 import { SupportTicket } from "@/models/SupportTicket";
-import { AlertTriangle, ClipboardList, FileText, ShieldAlert, ShieldCheck } from "lucide-react";
+import { TransferRequest } from "@/models/TransferRequest";
+import {
+  AlertTriangle,
+  ClipboardList,
+  FileText,
+  ReceiptText,
+  Send,
+  ShieldAlert,
+  ShieldCheck,
+  Users
+} from "lucide-react";
 import type { Metadata } from "next";
+import type { ComponentType } from "react";
 
 export const dynamic = "force-dynamic";
 
@@ -29,6 +41,8 @@ type ReviewItem = {
   createdAt: string;
 };
 
+type IconType = ComponentType<{ size?: number; className?: string }>;
+
 function formatDate(value: unknown) {
   if (!value) return "—";
   return new Date(String(value)).toLocaleString();
@@ -37,6 +51,10 @@ function formatDate(value: unknown) {
 function toId(value: unknown) {
   if (!value) return "";
   return String(value);
+}
+
+function moneyFromCents(value: number) {
+  return `$${(value / 100).toFixed(2)}`;
 }
 
 async function getAdminData() {
@@ -48,6 +66,8 @@ async function getAdminData() {
     supportTickets,
     fraudReports,
     appointments,
+    transferRequests,
+    billPayRequests,
     auditLogs,
     securityEvents
   ] = await Promise.all([
@@ -56,6 +76,8 @@ async function getAdminData() {
     SupportTicket.find().sort({ createdAt: -1 }).limit(6).lean(),
     FraudReport.find().sort({ createdAt: -1 }).limit(6).lean(),
     AppointmentRequest.find().sort({ createdAt: -1 }).limit(6).lean(),
+    TransferRequest.find().sort({ createdAt: -1 }).limit(6).lean(),
+    BillPayRequest.find().sort({ createdAt: -1 }).limit(6).lean(),
     AuditLog.find().sort({ createdAt: -1 }).limit(8).lean(),
     SecurityEvent.find().sort({ createdAt: -1 }).limit(8).lean()
   ]);
@@ -66,6 +88,8 @@ async function getAdminData() {
     supportTickets: await SupportTicket.countDocuments(),
     fraudReports: await FraudReport.countDocuments(),
     appointments: await AppointmentRequest.countDocuments(),
+    transferRequests: await TransferRequest.countDocuments(),
+    billPayRequests: await BillPayRequest.countDocuments(),
     auditLogs: await AuditLog.countDocuments(),
     securityEvents: await SecurityEvent.countDocuments()
   };
@@ -112,6 +136,22 @@ async function getAdminData() {
       status: item.status,
       createdAt: formatDate(item.createdAt)
     })),
+    transferRequests: transferRequests.map((item: any): ReviewItem => ({
+      id: toId(item._id),
+      href: `/admin/transfer-requests/${toId(item._id)}`,
+      title: item.recipientName,
+      subtitle: `${item.transferType} • ${moneyFromCents(item.amountCents || 0)}`,
+      status: item.status,
+      createdAt: formatDate(item.createdAt)
+    })),
+    billPayRequests: billPayRequests.map((item: any): ReviewItem => ({
+      id: toId(item._id),
+      href: `/admin/bill-pay-requests/${toId(item._id)}`,
+      title: item.payeeName,
+      subtitle: `${item.payeeCategory} • ${moneyFromCents(item.amountCents || 0)}`,
+      status: item.status,
+      createdAt: formatDate(item.createdAt)
+    })),
     auditLogs: auditLogs.map((item: any): ReviewItem => ({
       id: toId(item._id),
       href: `/admin/audit-logs/${toId(item._id)}`,
@@ -138,7 +178,7 @@ function StatCard({
 }: {
   label: string;
   value: number;
-  icon: typeof ClipboardList;
+  icon: IconType;
 }) {
   return (
     <div className="border border-bank-line bg-white p-5 shadow-sm">
@@ -226,10 +266,9 @@ export default async function AdminDashboardPage() {
           </h1>
 
           <p className="mt-6 max-w-3xl text-lg leading-8 text-white/65">
-            Review account opening requests, enrollments, support tickets, fraud reports,
-            appointments, audit logs, and security events from MongoDB.
+            Review account applications, enrollments, support requests, fraud reports,
+            appointments, transfer requests, bill-pay requests, audit logs, and security events.
           </p>
-
 
           <div className="mt-6 flex flex-wrap gap-3">
             <a href="/admin/customers" className="btn-primary h-11 px-5">
@@ -247,9 +286,8 @@ export default async function AdminDashboardPage() {
             <div className="flex gap-3">
               <AlertTriangle className="mt-0.5 shrink-0 text-bank-goldSoft" size={19} />
               <p className="text-sm leading-7 text-white/70">
-                This is a development dashboard. Before production, admin access must be
-                protected with separate admin authentication, RBAC, audit logging, rate
-                limiting, and session controls.
+                Transfer and bill-pay requests are review placeholders only. No ACH,
+                wire, card, biller, payment rail, or real money movement is connected.
               </p>
             </div>
           </div>
@@ -263,12 +301,27 @@ export default async function AdminDashboardPage() {
           <StatCard label="Support Tickets" value={data.counts.supportTickets} icon={ShieldCheck} />
           <StatCard label="Fraud Reports" value={data.counts.fraudReports} icon={ShieldAlert} />
           <StatCard label="Appointments" value={data.counts.appointments} icon={ClipboardList} />
+          <StatCard label="Transfers" value={data.counts.transferRequests} icon={Send} />
+          <StatCard label="Bill Pay" value={data.counts.billPayRequests} icon={ReceiptText} />
           <StatCard label="Audit Logs" value={data.counts.auditLogs} icon={FileText} />
           <StatCard label="Security Events" value={data.counts.securityEvents} icon={ShieldAlert} />
+          <StatCard label="Customers" value={0} icon={Users} />
         </div>
       </section>
 
       <section className="mx-auto grid max-w-7xl gap-6 px-4 pb-14 sm:px-6 sm:pb-20 lg:grid-cols-2">
+        <ReviewSection
+          title="Transfer Requests"
+          description="Customer-submitted transfer request placeholders awaiting review."
+          items={data.transferRequests}
+        />
+
+        <ReviewSection
+          title="Bill-Pay Requests"
+          description="Customer-submitted bill-pay request placeholders awaiting review."
+          items={data.billPayRequests}
+        />
+
         <ReviewSection
           title="Account Opening Applications"
           description="Recent account opening requests submitted from the public application flow."

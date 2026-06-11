@@ -1,10 +1,12 @@
 import { AccountOpeningApplication } from "@/models/AccountOpeningApplication";
 import { AppointmentRequest } from "@/models/AppointmentRequest";
 import { AuditLog } from "@/models/AuditLog";
+import { BillPayRequest } from "@/models/BillPayRequest";
 import { FraudReport } from "@/models/FraudReport";
 import { OnlineBankingEnrollment } from "@/models/OnlineBankingEnrollment";
 import { SecurityEvent } from "@/models/SecurityEvent";
 import { SupportTicket } from "@/models/SupportTicket";
+import { TransferRequest } from "@/models/TransferRequest";
 import { User } from "@/models/User";
 import {
   applicationStatuses,
@@ -15,6 +17,15 @@ import {
 } from "@/types/backend";
 
 export const securityEventStatuses = ["OPEN", "REVIEWED", "ESCALATED", "CLOSED"] as const;
+
+export const paymentRequestStatuses = [
+  "SUBMITTED",
+  "UNDER_REVIEW",
+  "APPROVED",
+  "REJECTED",
+  "CANCELLED",
+  "COMPLETED"
+] as const;
 
 export const adminReviewConfig = {
   customers: {
@@ -52,6 +63,18 @@ export const adminReviewConfig = {
     model: AppointmentRequest,
     statusField: "status",
     allowedStatuses: appointmentStatuses
+  },
+  "transfer-requests": {
+    label: "Transfer Request",
+    model: TransferRequest,
+    statusField: "status",
+    allowedStatuses: paymentRequestStatuses
+  },
+  "bill-pay-requests": {
+    label: "Bill-Pay Request",
+    model: BillPayRequest,
+    statusField: "status",
+    allowedStatuses: paymentRequestStatuses
   },
   "audit-logs": {
     label: "Audit Log",

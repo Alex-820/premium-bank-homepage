@@ -102,6 +102,10 @@ export default async function DashboardPage() {
               Cards
             </a>
 
+            <a href="/dashboard/security" className="btn-secondary h-11 px-5">
+              Security
+            </a>
+
             <form action="/api/auth/logout" method="post">
               <button type="submit" className="btn-secondary h-11 px-5">
                 Sign Out

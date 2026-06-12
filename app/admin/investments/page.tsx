@@ -12,7 +12,8 @@ import { InvestmentProfile } from "@/models/InvestmentProfile";
 import { PortfolioPreference } from "@/models/PortfolioPreference";
 import { StakingEligibilityRequest } from "@/models/StakingEligibilityRequest";
 import { SuitabilityReview } from "@/models/SuitabilityReview";
-import { ArrowLeft, BarChart3, Coins, FileText, Landmark, ShieldAlert } from "lucide-react";
+import { User } from "@/models/User";
+import { ArrowLeft, BarChart3, Coins, FileText, Landmark, ShieldAlert, ShieldCheck, UserRound } from "lucide-react";
 import type { Metadata } from "next";
 import type { ComponentType } from "react";
 
@@ -31,6 +32,8 @@ type ReviewItem = {
   subtitle: string;
   status: string;
   createdAt: string;
+  customerName: string;
+  customerEmail: string;
 };
 
 type IconType = ComponentType<{ size?: number; className?: string }>;
@@ -43,6 +46,38 @@ function formatDate(value: unknown) {
 function toId(value: unknown) {
   if (!value) return "";
   return String(value);
+}
+
+function collectUserIds(groups: any[][]) {
+  return Array.from(
+    new Set(
+      groups
+        .flat()
+        .map((item: any) => String(item.userId || ""))
+        .filter(Boolean)
+    )
+  );
+}
+
+function buildUserMap(users: any[]) {
+  return new Map(
+    users.map((user: any) => [
+      String(user._id),
+      {
+        name: String(user.fullName || "Unknown customer"),
+        email: String(user.email || "No email")
+      }
+    ])
+  );
+}
+
+function getCustomer(userMap: Map<string, { name: string; email: string }>, userId: unknown) {
+  return (
+    userMap.get(String(userId || "")) || {
+      name: "Unknown customer",
+      email: "No email"
+    }
+  );
 }
 
 async function getInvestmentAdminData() {
@@ -70,6 +105,24 @@ async function getInvestmentAdminData() {
     StakingEligibilityRequest.find().sort({ createdAt: -1 }).limit(8).lean()
   ]);
 
+  const userIds = collectUserIds([
+    investmentProfiles,
+    suitabilityReviews,
+    accountApplications,
+    portfolioPreferences,
+    etfRequests,
+    bondRequests,
+    digitalAssetReviews,
+    cryptoEtfRequests,
+    stakingRequests
+  ]);
+
+  const users = await User.find({ _id: { $in: userIds } })
+    .select("fullName email")
+    .lean();
+
+  const userMap = buildUserMap(users);
+
   const counts = {
     investmentProfiles: await InvestmentProfile.countDocuments(),
     suitabilityReviews: await SuitabilityReview.countDocuments(),
@@ -84,78 +137,132 @@ async function getInvestmentAdminData() {
 
   return {
     counts,
-    investmentProfiles: investmentProfiles.map((item: any): ReviewItem => ({
-      id: toId(item._id),
-      href: `/admin/investment-profiles/${toId(item._id)}`,
-      title: item.profileNumber,
-      subtitle: `${item.investorType} • ${item.riskTolerance}`,
-      status: item.suitabilityStatus,
-      createdAt: formatDate(item.createdAt)
-    })),
-    suitabilityReviews: suitabilityReviews.map((item: any): ReviewItem => ({
-      id: toId(item._id),
-      href: `/admin/suitability-reviews/${toId(item._id)}`,
-      title: item.investmentObjective,
-      subtitle: `${item.riskTolerance} • ${item.timeHorizon}`,
-      status: item.status,
-      createdAt: formatDate(item.createdAt)
-    })),
-    accountApplications: accountApplications.map((item: any): ReviewItem => ({
-      id: toId(item._id),
-      href: `/admin/investment-account-applications/${toId(item._id)}`,
-      title: item.accountType,
-      subtitle: `${item.serviceLevel} • ${item.fundingIntent}`,
-      status: item.status,
-      createdAt: formatDate(item.createdAt)
-    })),
-    portfolioPreferences: portfolioPreferences.map((item: any): ReviewItem => ({
-      id: toId(item._id),
-      href: `/admin/portfolio-preferences/${toId(item._id)}`,
-      title: item.portfolioGoal,
-      subtitle: `${item.preferredManagement} • ${item.riskLevel}`,
-      status: item.status,
-      createdAt: formatDate(item.createdAt)
-    })),
-    etfRequests: etfRequests.map((item: any): ReviewItem => ({
-      id: toId(item._id),
-      href: `/admin/etf-interest-requests/${toId(item._id)}`,
-      title: item.etfCategory,
-      subtitle: `${item.advisoryPreference} • ${item.intendedAllocationRange}`,
-      status: item.status,
-      createdAt: formatDate(item.createdAt)
-    })),
-    bondRequests: bondRequests.map((item: any): ReviewItem => ({
-      id: toId(item._id),
-      href: `/admin/bond-treasury-requests/${toId(item._id)}`,
-      title: item.fixedIncomeType,
-      subtitle: `${item.maturityPreference} • ${item.approximateAmountRange}`,
-      status: item.status,
-      createdAt: formatDate(item.createdAt)
-    })),
-    digitalAssetReviews: digitalAssetReviews.map((item: any): ReviewItem => ({
-      id: toId(item._id),
-      href: `/admin/digital-asset-eligibility/${toId(item._id)}`,
-      title: item.digitalAssetExperience,
-      subtitle: "Digital asset risk acknowledgement review",
-      status: item.eligibilityStatus,
-      createdAt: formatDate(item.createdAt)
-    })),
-    cryptoEtfRequests: cryptoEtfRequests.map((item: any): ReviewItem => ({
-      id: toId(item._id),
-      href: `/admin/crypto-etf-interest-requests/${toId(item._id)}`,
-      title: item.requestedExposure,
-      subtitle: `${item.advisoryPreference} • ${item.intendedAllocationRange}`,
-      status: item.status,
-      createdAt: formatDate(item.createdAt)
-    })),
-    stakingRequests: stakingRequests.map((item: any): ReviewItem => ({
-      id: toId(item._id),
-      href: `/admin/staking-eligibility-requests/${toId(item._id)}`,
-      title: item.requestedAsset,
-      subtitle: `${item.rewardReportingPreference} reporting`,
-      status: item.status,
-      createdAt: formatDate(item.createdAt)
-    }))
+    investmentProfiles: investmentProfiles.map((item: any): ReviewItem => {
+      const customer = getCustomer(userMap, item.userId);
+
+      return {
+        id: toId(item._id),
+        href: `/admin/investment-profiles/${toId(item._id)}`,
+        title: item.profileNumber,
+        subtitle: `${item.investorType} • ${item.riskTolerance}`,
+        status: item.suitabilityStatus,
+        createdAt: formatDate(item.createdAt),
+        customerName: customer.name,
+        customerEmail: customer.email
+      };
+    }),
+    suitabilityReviews: suitabilityReviews.map((item: any): ReviewItem => {
+      const customer = getCustomer(userMap, item.userId);
+
+      return {
+        id: toId(item._id),
+        href: `/admin/suitability-reviews/${toId(item._id)}`,
+        title: item.investmentObjective,
+        subtitle: `${item.riskTolerance} • ${item.timeHorizon}`,
+        status: item.status,
+        createdAt: formatDate(item.createdAt),
+        customerName: customer.name,
+        customerEmail: customer.email
+      };
+    }),
+    accountApplications: accountApplications.map((item: any): ReviewItem => {
+      const customer = getCustomer(userMap, item.userId);
+
+      return {
+        id: toId(item._id),
+        href: `/admin/investment-account-applications/${toId(item._id)}`,
+        title: item.accountType,
+        subtitle: `${item.serviceLevel} • ${item.fundingIntent}`,
+        status: item.status,
+        createdAt: formatDate(item.createdAt),
+        customerName: customer.name,
+        customerEmail: customer.email
+      };
+    }),
+    portfolioPreferences: portfolioPreferences.map((item: any): ReviewItem => {
+      const customer = getCustomer(userMap, item.userId);
+
+      return {
+        id: toId(item._id),
+        href: `/admin/portfolio-preferences/${toId(item._id)}`,
+        title: item.portfolioGoal,
+        subtitle: `${item.preferredManagement} • ${item.riskLevel}`,
+        status: item.status,
+        createdAt: formatDate(item.createdAt),
+        customerName: customer.name,
+        customerEmail: customer.email
+      };
+    }),
+    etfRequests: etfRequests.map((item: any): ReviewItem => {
+      const customer = getCustomer(userMap, item.userId);
+
+      return {
+        id: toId(item._id),
+        href: `/admin/etf-interest-requests/${toId(item._id)}`,
+        title: item.etfCategory,
+        subtitle: `${item.advisoryPreference} • ${item.intendedAllocationRange}`,
+        status: item.status,
+        createdAt: formatDate(item.createdAt),
+        customerName: customer.name,
+        customerEmail: customer.email
+      };
+    }),
+    bondRequests: bondRequests.map((item: any): ReviewItem => {
+      const customer = getCustomer(userMap, item.userId);
+
+      return {
+        id: toId(item._id),
+        href: `/admin/bond-treasury-requests/${toId(item._id)}`,
+        title: item.fixedIncomeType,
+        subtitle: `${item.maturityPreference} • ${item.approximateAmountRange}`,
+        status: item.status,
+        createdAt: formatDate(item.createdAt),
+        customerName: customer.name,
+        customerEmail: customer.email
+      };
+    }),
+    digitalAssetReviews: digitalAssetReviews.map((item: any): ReviewItem => {
+      const customer = getCustomer(userMap, item.userId);
+
+      return {
+        id: toId(item._id),
+        href: `/admin/digital-asset-eligibility/${toId(item._id)}`,
+        title: item.digitalAssetExperience,
+        subtitle: "Digital asset risk acknowledgement review",
+        status: item.eligibilityStatus,
+        createdAt: formatDate(item.createdAt),
+        customerName: customer.name,
+        customerEmail: customer.email
+      };
+    }),
+    cryptoEtfRequests: cryptoEtfRequests.map((item: any): ReviewItem => {
+      const customer = getCustomer(userMap, item.userId);
+
+      return {
+        id: toId(item._id),
+        href: `/admin/crypto-etf-interest-requests/${toId(item._id)}`,
+        title: item.requestedExposure,
+        subtitle: `${item.advisoryPreference} • ${item.intendedAllocationRange}`,
+        status: item.status,
+        createdAt: formatDate(item.createdAt),
+        customerName: customer.name,
+        customerEmail: customer.email
+      };
+    }),
+    stakingRequests: stakingRequests.map((item: any): ReviewItem => {
+      const customer = getCustomer(userMap, item.userId);
+
+      return {
+        id: toId(item._id),
+        href: `/admin/staking-eligibility-requests/${toId(item._id)}`,
+        title: item.requestedAsset,
+        subtitle: `${item.rewardReportingPreference} reporting`,
+        status: item.status,
+        createdAt: formatDate(item.createdAt),
+        customerName: customer.name,
+        customerEmail: customer.email
+      };
+    })
   };
 }
 
@@ -214,9 +321,19 @@ function ReviewSection({
               className="grid gap-3 border border-bank-line bg-white p-4 transition hover:border-bank-blue hover:bg-bank-mist sm:grid-cols-[1fr_auto]"
             >
               <div>
-                <p className="text-sm font-semibold text-ink-950">{item.title}</p>
-                <p className="mt-1 text-xs leading-5 text-bank-steel">{item.subtitle}</p>
-                <p className="mt-2 text-[11px] text-bank-steel">ID: {item.id}</p>
+                <div className="flex items-start gap-3">
+                  <div className="grid h-9 w-9 shrink-0 place-items-center border border-bank-line bg-bank-mist">
+                    <UserRound size={16} className="text-bank-blue" />
+                  </div>
+
+                  <div>
+                    <p className="text-sm font-semibold text-ink-950">{item.title}</p>
+                    <p className="mt-1 text-xs leading-5 text-bank-steel">{item.subtitle}</p>
+                    <p className="mt-2 text-xs font-semibold text-ink-950">{item.customerName}</p>
+                    <p className="mt-1 text-xs text-bank-steel">{item.customerEmail}</p>
+                    <p className="mt-2 text-[11px] text-bank-steel">ID: {item.id}</p>
+                  </div>
+                </div>
               </div>
 
               <div className="sm:text-right">
@@ -261,9 +378,9 @@ export default async function AdminInvestmentsPage() {
           </h1>
 
           <p className="mt-6 max-w-3xl text-lg leading-8 text-white/65">
-            Review suitability, investment account applications, portfolio preferences,
-            ETF interest, fixed income requests, digital asset eligibility, crypto ETF
-            interest, and staking eligibility requests.
+            Review customer identity, suitability, investment account applications,
+            portfolio preferences, ETF interest, fixed income requests, digital asset
+            eligibility, crypto ETF interest, and staking eligibility.
           </p>
 
           <div className="mt-8 border border-bank-gold/40 bg-white/[0.04] p-5">
@@ -279,7 +396,7 @@ export default async function AdminInvestmentsPage() {
       <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <StatCard label="Profiles" value={data.counts.investmentProfiles} icon={FileText} />
-          <StatCard label="Suitability" value={data.counts.suitabilityReviews} icon={ShieldCheckIcon} />
+          <StatCard label="Suitability" value={data.counts.suitabilityReviews} icon={ShieldCheck} />
           <StatCard label="Accounts" value={data.counts.accountApplications} icon={Landmark} />
           <StatCard label="Portfolios" value={data.counts.portfolioPreferences} icon={BarChart3} />
           <StatCard label="ETF Requests" value={data.counts.etfRequests} icon={BarChart3} />
@@ -349,8 +466,4 @@ export default async function AdminInvestmentsPage() {
       <Footer />
     </main>
   );
-}
-
-function ShieldCheckIcon({ size, className }: { size?: number; className?: string }) {
-  return <ShieldAlert size={size} className={className} />;
 }

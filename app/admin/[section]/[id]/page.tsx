@@ -10,6 +10,7 @@ import { connectDB } from "@/lib/db";
 import { AdminNote } from "@/models/AdminNote";
 import { BankAccount } from "@/models/BankAccount";
 import { CustomerProfile } from "@/models/CustomerProfile";
+import { User } from "@/models/User";
 import { ArrowLeft, FileText } from "lucide-react";
 import { isValidObjectId } from "mongoose";
 import { notFound } from "next/navigation";
@@ -58,18 +59,22 @@ export default async function AdminDetailPage({
 
   await connectDB();
 
-  const [record, notes, customerProfile, customerAccounts] = await Promise.all([
-    config.model.findById(id).lean(),
-    AdminNote.find({ entityType: section, entityId: id }).sort({ createdAt: -1 }).lean(),
-    section === "customers" ? CustomerProfile.findOne({ userId: id }).lean() : null,
-    section === "customers" ? BankAccount.find({ userId: id }).sort({ createdAt: -1 }).limit(10).lean() : []
-  ]);
+  const record = await config.model.findById(id).lean();
 
   if (!record) {
     notFound();
   }
 
   const plainRecord = JSON.parse(JSON.stringify(record)) as Record<string, unknown>;
+  const relatedUserId = section === "customers" ? id : String(plainRecord.userId || "");
+
+  const [notes, customerProfile, customerAccounts, relatedUser] = await Promise.all([
+    AdminNote.find({ entityType: section, entityId: id }).sort({ createdAt: -1 }).lean(),
+    section === "customers" ? CustomerProfile.findOne({ userId: id }).lean() : null,
+    section === "customers" ? BankAccount.find({ userId: id }).sort({ createdAt: -1 }).limit(10).lean() : [],
+    relatedUserId ? User.findById(relatedUserId).select("fullName email phone role status").lean() : null
+  ]);
+
   const statusValue = String(plainRecord[config.statusField] || "");
 
   const initialNotes = notes.map((note: any) => ({
@@ -173,6 +178,40 @@ export default async function AdminDetailPage({
           </div>
 
           <aside className="space-y-6">
+            {relatedUser && (
+              <div className="border border-bank-line bg-white p-6 shadow-sm">
+                <h2 className="text-lg font-semibold tracking-[-0.02em] text-ink-950">
+                  Related Customer
+                </h2>
+
+                <div className="mt-5 grid gap-3">
+                  {[
+                    ["Name", (relatedUser as any).fullName || "—"],
+                    ["Email", (relatedUser as any).email || "—"],
+                    ["Phone", (relatedUser as any).phone || "—"],
+                    ["Role", (relatedUser as any).role || "—"],
+                    ["Status", (relatedUser as any).status || "—"]
+                  ].map(([label, value]) => (
+                    <div key={label} className="grid grid-cols-[110px_1fr] gap-4 border border-bank-line bg-bank-mist p-3">
+                      <p className="text-xs font-semibold uppercase tracking-[0.16em] text-bank-steel">
+                        {label}
+                      </p>
+                      <p className="text-sm font-semibold text-ink-950">
+                        {String(value)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+
+                <a
+                  href={`/admin/customers/${String((relatedUser as any)._id)}`}
+                  className="mt-4 inline-flex text-sm font-semibold text-bank-blue hover:underline"
+                >
+                  Open customer profile →
+                </a>
+              </div>
+            )}
+
             {section === "customers" && (
               <>
                 <AdminCustomerProfileActions

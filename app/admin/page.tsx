@@ -290,6 +290,10 @@ export default async function AdminDashboardPage() {
               Customer Management
             </a>
 
+            <a href="/admin/investments" className="btn-primary h-11 px-5">
+              Investment Review
+            </a>
+
             <form action="/api/admin/auth/logout" method="post">
               <button type="submit" className="btn-secondary h-11 px-5">
                 Sign Out Admin

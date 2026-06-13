@@ -1,3 +1,4 @@
+import { InvestmentProductAccessCards } from "@/components/dashboard/InvestmentProductAccessCards";
 import { InvestmentRequestForms } from "@/components/dashboard/InvestmentRequestForms";
 import { Footer } from "@/components/Footer";
 import { MainNav } from "@/components/MainNav";
@@ -205,6 +206,10 @@ export default async function CustomerInvestmentsPage() {
             regulatory, tax, and operational risks.
           </p>
         </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-10 sm:px-6">
+        <InvestmentProductAccessCards />
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pb-14 sm:px-6">
